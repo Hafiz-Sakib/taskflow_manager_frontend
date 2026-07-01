@@ -24,43 +24,68 @@ export default function Login() {
   };
 
   return (
-    <div className="app-shell">
-      <div className="screen auth-screen">
-        <div className="auth-badge" />
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="muted">Sign in to keep your boards moving.</p>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-ink-50 dark:bg-ink-950">
+      <div className="hidden lg:flex flex-col justify-between bg-brand-gradient p-12 text-white">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl bg-white/20 backdrop-blur" />
+          <span className="text-lg font-bold">TaskFlow</span>
+        </div>
+        <div>
+          <h2 className="text-3xl font-bold leading-snug max-w-md">
+            Plan your work, track every task, ship on time.
+          </h2>
+          <p className="text-white/70 mt-3 max-w-sm">
+            Boards, calendars, and stats — all in one place, built for teams that move fast.
+          </p>
+        </div>
+        <p className="text-sm text-white/50">© {new Date().getFullYear()} TaskFlow</p>
+      </div>
 
-        {error && <p className="form-error">{error}</p>}
+      <div className="flex items-center justify-center p-6 sm:p-12">
+        <div className="w-full max-w-sm">
+          <div className="lg:hidden h-10 w-10 rounded-xl bg-brand-gradient mb-8" />
+          <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
+          <p className="text-ink-400 mb-8">Sign in to keep your boards moving.</p>
 
-        <form onSubmit={onSubmit}>
-          <div className="field">
-            <label>Email</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="you@example.com"
-            />
-          </div>
-          <div className="field">
-            <label>Password</label>
-            <input
-              type="password"
-              required
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="••••••••"
-            />
-          </div>
-          <button className="btn-primary" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+          {error && (
+            <p className="mb-4 rounded-xl bg-priority-high/10 text-priority-high text-sm px-4 py-3">{error}</p>
+          )}
 
-        <p className="auth-switch">
-          New here? <Link to="/register">Create an account</Link>
-        </p>
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-ink-500 mb-1.5">Email</label>
+              <input
+                type="email"
+                required
+                className="input"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-ink-500 mb-1.5">Password</label>
+              <input
+                type="password"
+                required
+                className="input"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
+            </div>
+            <button className="btn-primary w-full mt-2" disabled={submitting}>
+              {submitting ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+
+          <p className="text-sm text-ink-400 text-center mt-6">
+            New here?{' '}
+            <Link to="/register" className="text-brand-500 font-semibold">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

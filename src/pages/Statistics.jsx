@@ -1,105 +1,184 @@
 import { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import Topbar from '../components/Topbar.jsx';
+import Spinner from '../components/Spinner.jsx';
 import { boardsApi } from '../api/client.js';
-import BottomNav from '../components/BottomNav.jsx';
+import { isOverdue, isDoneColumn } from '../utils/helpers.js';
 
-const WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const SAMPLE_TREND = [8, 14, 12, 16, 15, 23, 18];
-
-const TEAMS = [
-  { label: 'Design', pct: 40, color: '#3b6cf6' },
-  { label: 'Marketing', pct: 30, color: '#b13bde' },
-  { label: 'Dev', pct: 30, color: '#ef4d8b' },
-];
+const PRIORITY_COLORS = { low: '#28c281', medium: '#f5a15c', high: '#ef4d6b' };
 
 export default function Statistics() {
+  const { openMobileNav, openSearch } = useOutletContext() || {};
+  const [tasks, setTasks] = useState([]);
   const [boards, setBoards] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    boardsApi.list().then(setBoards).catch(() => {});
+    let cancelled = false;
+    boardsApi
+      .list()
+      .then(async (boardList) => {
+        setBoards(boardList);
+        const details = await Promise.all(boardList.map((b) => boardsApi.get(b._id).catch(() => null)));
+        if (cancelled) return;
+        setTasks(details.filter(Boolean).flatMap((d) => d.tasks.map((t) => ({ ...t, boardTitle: d.board.title }))));
+      })
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const pending = boards[0];
+  if (loading) {
+    return (
+      <div>
+        <Topbar title="Statistics" onMenuClick={openMobileNav} onSearchClick={openSearch} />
+        <Spinner />
+      </div>
+    );
+  }
+
+  const total = tasks.length;
+  const byPriority = ['low', 'medium', 'high'].map((p) => ({
+    key: p,
+    count: tasks.filter((t) => t.priority === p).length,
+  }));
+  const columns = [...new Set(tasks.map((t) => t.column))];
+  const byColumn = columns.map((c) => ({ column: c, count: tasks.filter((t) => t.column === c).length }));
+  const overdueCount = tasks.filter((t) => isOverdue(t.dueDate, t.column)).length;
+  const doneCount = tasks.filter((t) => isDoneColumn(t.column)).length;
+  const completionRate = total ? Math.round((doneCount / total) * 100) : 0;
 
   return (
-    <div className="app-shell">
-      <div className="screen">
-        <h1 className="stats-title">Task Completion</h1>
+    <div>
+      <Topbar title="Statistics" onMenuClick={openMobileNav} onSearchClick={openSearch} />
 
-        <div className="card chart-card">
-          <TrendChart data={SAMPLE_TREND} labels={WEEK} />
+      <div className="px-4 sm:px-6 py-6 space-y-6">
+        <div className="grid sm:grid-cols-3 gap-4">
+          <MetricCard label="Total tasks" value={total} />
+          <MetricCard label="Completion rate" value={`${completionRate}%`} accent="text-priority-low" />
+          <MetricCard label="Overdue" value={overdueCount} accent="text-priority-high" />
         </div>
 
-        <h2 className="section-title">Teams</h2>
-        <div className="card teams-card">
-          <div className="team-bar">
-            {TEAMS.map((t) => (
-              <span key={t.label} style={{ width: `${t.pct}%`, background: t.color }} />
-            ))}
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="card p-5">
+            <h2 className="font-bold mb-4">Tasks by column</h2>
+            <BarChart data={byColumn.map((c) => ({ label: c.column, value: c.count }))} />
           </div>
-          <div className="team-legend">
-            {TEAMS.map((t) => (
-              <div key={t.label} className="team-legend__item">
-                <span className="dot" style={{ background: t.color }} />
-                <strong>{t.pct}%</strong>
-                <span className="muted">{t.label}</span>
+
+          <div className="card p-5">
+            <h2 className="font-bold mb-4">Tasks by priority</h2>
+            <div className="flex items-center gap-8">
+              <DonutChart
+                segments={byPriority.map((p) => ({ value: p.count, color: PRIORITY_COLORS[p.key] }))}
+                total={total}
+              />
+              <div className="space-y-2.5">
+                {byPriority.map((p) => (
+                  <div key={p.key} className="flex items-center gap-2 text-sm">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: PRIORITY_COLORS[p.key] }} />
+                    <span className="capitalize font-medium">{p.key}</span>
+                    <span className="text-ink-400">{p.count}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
-        <h2 className="section-title">Pending</h2>
-        <div className="card pending-card">
-          <div className="pending-card__top">
-            <p className="pending-card__title">{pending?.title || 'Web design project'}</p>
-            <button className="hero-card__menu" style={{ color: 'var(--ink-faint)' }}>⋮</button>
-          </div>
-          <div className="pending-card__progress-row">
-            <span>Progress</span>
-            <span>{pending?.progress ?? 32}%</span>
-          </div>
-          <div className="pending-card__bar">
-            <div className="pending-card__bar-fill" style={{ width: `${pending?.progress ?? 32}%` }} />
+        <div className="card p-5">
+          <h2 className="font-bold mb-4">Progress by board</h2>
+          <div className="space-y-4">
+            {boards.map((b) => {
+              const boardTasks = tasks.filter((t) => t.boardTitle === b.title);
+              const done = boardTasks.filter((t) => t.column.toLowerCase() === 'done').length;
+              const pct = boardTasks.length ? Math.round((done / boardTasks.length) * 100) : 0;
+              return (
+                <div key={b._id}>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="font-medium">{b.title}</span>
+                    <span className="text-ink-400">{pct}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-ink-100 dark:bg-ink-800 overflow-hidden">
+                    <div className="h-full rounded-full bg-brand-gradient" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+            {boards.length === 0 && <p className="text-sm text-ink-400">No boards yet.</p>}
           </div>
         </div>
       </div>
-      <BottomNav />
     </div>
   );
 }
 
-function TrendChart({ data, labels }) {
-  const width = 320;
-  const height = 140;
-  const max = Math.max(...data) + 5;
-  const min = 0;
-  const stepX = width / (data.length - 1);
+function MetricCard({ label, value, accent = 'text-ink-900 dark:text-white' }) {
+  return (
+    <div className="card p-5">
+      <p className={`text-3xl font-bold ${accent}`}>{value}</p>
+      <p className="text-sm text-ink-400 mt-1">{label}</p>
+    </div>
+  );
+}
 
-  const points = data.map((v, i) => {
-    const x = i * stepX;
-    const y = height - ((v - min) / (max - min)) * height;
-    return [x, y];
-  });
+function BarChart({ data }) {
+  if (data.length === 0) return <p className="text-sm text-ink-400">No data yet.</p>;
+  const max = Math.max(...data.map((d) => d.value), 1);
+  return (
+    <div className="flex items-end gap-4 h-40">
+      {data.map((d) => (
+        <div key={d.label} className="flex-1 flex flex-col items-center gap-2">
+          <div className="w-full flex-1 flex items-end">
+            <div
+              className="w-full rounded-t-lg bg-brand-500/80"
+              style={{ height: `${(d.value / max) * 100}%`, minHeight: d.value ? 6 : 2 }}
+            />
+          </div>
+          <span className="text-xs text-ink-400 text-center">{d.label}</span>
+          <span className="text-xs font-semibold -mt-1">{d.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  const path = points
-    .map(([x, y], i) => (i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`))
-    .join(' ');
-
-  const peakIndex = data.indexOf(Math.max(...data));
-  const peak = points[peakIndex];
+function DonutChart({ segments, total }) {
+  const size = 120;
+  const stroke = 16;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
 
   return (
-    <svg viewBox={`0 0 ${width} ${height + 26}`} width="100%" height="180">
-      <path d={path} fill="none" stroke="#3b6cf6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={peak[0]} cy={peak[1]} r="4" fill="#3b6cf6" />
-      <rect x={peak[0] - 14} y={peak[1] - 26} width="28" height="18" rx="6" fill="#3b6cf6" />
-      <text x={peak[0]} y={peak[1] - 13} textAnchor="middle" fontSize="10" fill="#fff" fontWeight="700">
-        {data[peakIndex]}
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" className="text-ink-100 dark:text-ink-800" strokeWidth={stroke} />
+      {total === 0
+        ? null
+        : segments.map((s, i) => {
+            const fraction = s.value / total;
+            const dash = fraction * circumference;
+            const circle = (
+              <circle
+                key={i}
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                fill="none"
+                stroke={s.color}
+                strokeWidth={stroke}
+                strokeDasharray={`${dash} ${circumference - dash}`}
+                strokeDashoffset={-offset}
+                transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                strokeLinecap="butt"
+              />
+            );
+            offset += dash;
+            return circle;
+          })}
+      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="fill-current text-lg font-bold">
+        {total}
       </text>
-      {labels.map((l, i) => (
-        <text key={l} x={i * stepX} y={height + 20} textAnchor="middle" fontSize="10" fill="#a0a3bd">
-          {l}
-        </text>
-      ))}
     </svg>
   );
 }
