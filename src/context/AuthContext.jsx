@@ -1,9 +1,9 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api/client';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { authApi } from '../api/client.js';
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -13,23 +13,23 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       return;
     }
-    api
-      .get('/auth/me')
-      .then((res) => setUser(res.data))
+    authApi
+      .me()
+      .then(setUser)
       .catch(() => localStorage.removeItem('taskflow_token'))
       .finally(() => setLoading(false));
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
-    localStorage.setItem('taskflow_token', res.data.token);
-    setUser(res.data);
+    const data = await authApi.login({ email, password });
+    localStorage.setItem('taskflow_token', data.token);
+    setUser(data);
   };
 
   const register = async (name, email, password) => {
-    const res = await api.post('/auth/register', { name, email, password });
-    localStorage.setItem('taskflow_token', res.data.token);
-    setUser(res.data);
+    const data = await authApi.register({ name, email, password });
+    localStorage.setItem('taskflow_token', data.token);
+    setUser(data);
   };
 
   const logout = () => {
@@ -42,6 +42,10 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+}

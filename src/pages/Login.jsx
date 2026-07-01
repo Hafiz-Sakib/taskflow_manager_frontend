@@ -1,78 +1,65 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setSubmitting(true);
     try {
-      await login(email, password);
-      navigate('/boards');
+      await login(form.email, form.password);
+      navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.message);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome back</h1>
-        <p className="text-sm text-gray-500 mb-6">Log in to continue to TaskFlow</p>
+    <div className="app-shell">
+      <div className="screen auth-screen">
+        <div className="auth-badge" />
+        <h1 className="auth-title">Welcome back</h1>
+        <p className="muted">Sign in to keep your boards moving.</p>
 
-        {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
-            {error}
-          </div>
-        )}
+        {error && <p className="form-error">{error}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <form onSubmit={onSubmit}>
+          <div className="field">
+            <label>Email</label>
             <input
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="you@example.com"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <div className="field">
+            <label>Password</label>
             <input
               type="password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder="••••••••"
             />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 rounded-md transition disabled:opacity-50"
-          >
-            {loading ? 'Logging in...' : 'Log in'}
+          <button className="btn-primary" disabled={submitting}>
+            {submitting ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
-        <p className="text-sm text-gray-500 mt-6 text-center">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-brand-600 font-medium hover:underline">
-            Sign up
-          </Link>
+        <p className="auth-switch">
+          New here? <Link to="/register">Create an account</Link>
         </p>
       </div>
     </div>

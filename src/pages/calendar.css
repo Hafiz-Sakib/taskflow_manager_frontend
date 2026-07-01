@@ -1,0 +1,135 @@
+.cal-screen {
+  background: linear-gradient(180deg, #eae6fb 0%, #eef0fa 220px);
+}
+
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 18px 0 16px;
+}
+
+.cal-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.cal-chip {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 66px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+}
+
+.cal-chip__num {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.cal-chip__label {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.cal-chip--active {
+  background: #fff;
+  border: 2px solid var(--violet);
+}
+
+.cal-chip__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--violet);
+  position: absolute;
+  bottom: 8px;
+}
+
+.cal-grid {
+  padding: 14px 10px 20px;
+}
+
+.cal-grid__days {
+  display: grid;
+  grid-template-columns: 46px repeat(5, 1fr);
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  padding: 0 4px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cal-gmt {
+  font-size: 10px;
+  color: var(--ink-faint);
+  background: var(--line);
+  border-radius: 6px;
+  padding: 2px 4px;
+  text-align: center;
+  align-self: center;
+}
+
+.cal-grid__body {
+  max-height: 380px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+.cal-row {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  min-height: 46px;
+  position: relative;
+}
+
+.cal-row__hour {
+  font-size: 11px;
+  color: var(--ink-faint);
+  padding-top: 2px;
+}
+
+.cal-row__track {
+  position: relative;
+  border-top: 1px dashed var(--line);
+}
+
+.cal-event {
+  position: absolute;
+  top: 2px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: var(--shadow-soft);
+}

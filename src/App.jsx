@@ -1,37 +1,53 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Boards from './pages/Boards';
-import BoardDetail from './pages/BoardDetail';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home.jsx';
+import CalendarPage from './pages/Calendar.jsx';
+import Statistics from './pages/Statistics.jsx';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
+import { useAuth } from './context/AuthContext.jsx';
+
+import './components/components.css';
+import './pages/home.css';
+import './pages/calendar.css';
+import './pages/statistics.css';
+import './pages/auth.css';
+
+function PrivateRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="app-shell"><p className="screen muted">Loading…</p></div>;
+  return user ? children : <Navigate to="/login" replace />;
+}
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/boards"
-            element={
-              <ProtectedRoute>
-                <Boards />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/boards/:id"
-            element={
-              <ProtectedRoute>
-                <BoardDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/boards" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <PrivateRoute>
+            <CalendarPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/statistics"
+        element={
+          <PrivateRoute>
+            <Statistics />
+          </PrivateRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

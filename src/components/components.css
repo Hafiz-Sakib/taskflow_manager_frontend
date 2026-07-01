@@ -1,0 +1,155 @@
+/* ---------- Bottom nav ---------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  background: #14142b;
+  padding: 8px;
+  border-radius: 999px;
+  box-shadow: 0 14px 30px -10px rgba(20, 20, 43, 0.45);
+  z-index: 20;
+}
+
+.nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: #8b8ba7;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-pill--active {
+  background: #ffffff;
+  color: #14142b;
+}
+
+.nav-pill__label {
+  white-space: nowrap;
+  max-width: 0;
+  overflow: hidden;
+  transition: max-width 0.2s ease;
+}
+
+.nav-pill--active .nav-pill__label {
+  max-width: 100px;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+}
+
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-soft);
+}
+
+.stat-card__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card__value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-card__label {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+/* ---------- Section header ---------- */
+.section-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 22px 0 12px;
+}
+
+/* ---------- Buttons ---------- */
+.btn-primary {
+  background: var(--grad-hero);
+  color: #fff;
+  font-weight: 600;
+  padding: 14px;
+  border-radius: 16px;
+  width: 100%;
+  font-size: 15px;
+  box-shadow: var(--shadow-card);
+}
+
+.btn-ghost {
+  background: var(--line);
+  color: var(--ink);
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+/* ---------- Inputs ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.field input,
+.field textarea,
+.field select {
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  background: #fbfbff;
+  outline: none;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--violet);
+}
+
+.form-error {
+  background: #fdeef1;
+  color: #c23b5f;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}

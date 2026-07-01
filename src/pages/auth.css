@@ -1,0 +1,33 @@
+.auth-screen {
+  padding-top: 60px;
+}
+
+.auth-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: var(--grad-hero);
+  margin-bottom: 24px;
+}
+
+.auth-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.auth-screen form {
+  margin-top: 28px;
+}
+
+.auth-switch {
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--violet);
+  font-weight: 600;
+}

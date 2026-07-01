@@ -1,0 +1,143 @@
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 8px;
+}
+
+.home-greeting {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.home-name {
+  margin: 2px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.avatar-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--grad-hero);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.hero-card {
+  background: var(--grad-hero);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  color: #fff;
+  margin-top: 10px;
+  box-shadow: var(--shadow-card);
+}
+
+.hero-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.hero-card__top h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  max-width: 220px;
+}
+
+.hero-card__menu {
+  color: #fff;
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.hero-card__progress-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  opacity: 0.85;
+  margin-top: 18px;
+}
+
+.hero-card__bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.hero-card__bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.hero-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.avatar-stack {
+  display: flex;
+}
+
+.avatar-chip {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  margin-left: -8px;
+}
+
+.avatar-stack .avatar-chip:first-child {
+  margin-left: 0;
+}
+
+.hero-card__date {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.board-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.board-row {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.board-row__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.board-row__meta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.chevron {
+  color: var(--ink-faint);
+  font-size: 18px;
+}
