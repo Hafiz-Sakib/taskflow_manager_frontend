@@ -56,6 +56,7 @@ export function TaskModal({
         column: task.column,
         priority: task.priority,
         dueDate: task.dueDate ? task.dueDate.slice(0, 10) : '',
+        labels: task.labels.join(', '),
       });
       trackRecentTask(task._id);
     }
@@ -67,7 +68,16 @@ export function TaskModal({
   const onSubmit = (values: TaskFormValues) => {
     updateTask.mutate({
       id: task._id,
-      payload: { ...values, dueDate: values.dueDate || null },
+      payload: {
+        ...values,
+        dueDate: values.dueDate || null,
+        labels: values.labels
+          ? values.labels
+              .split(',')
+              .map((l) => l.trim())
+              .filter(Boolean)
+          : [],
+      },
     });
   };
 
@@ -123,6 +133,10 @@ export function TaskModal({
               </Select>
             </FormField>
           </div>
+
+          <FormField label="Labels" htmlFor="labels" hint="Comma-separated, e.g. design, urgent">
+            <Input id="labels" placeholder="design, urgent" {...register('labels')} />
+          </FormField>
 
           <div className="grid grid-cols-2 gap-4 items-end">
             <FormField label="Due date" htmlFor="dueDate">

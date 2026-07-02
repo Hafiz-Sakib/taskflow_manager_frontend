@@ -6,5 +6,6 @@ export const taskSchema = z.object({
   column: z.string().min(1, 'Column is required'),
   priority: z.enum(['low', 'medium', 'high']),
   dueDate: z.string().optional().default(''),
+  labels: z.string().optional().default(''),
 });
 export type TaskFormValues = z.infer<typeof taskSchema>;

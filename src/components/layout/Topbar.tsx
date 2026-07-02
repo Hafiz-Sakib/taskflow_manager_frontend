@@ -1,13 +1,11 @@
 import type { ReactNode } from 'react';
-import { Menu, Search, Sun, Moon } from 'lucide-react';
+import { Menu, Search } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useUiStore } from '@/store/uiStore';
-import { useThemeStore } from '@/store/themeStore';
 
 export function Topbar({ title, right }: { title: string; right?: ReactNode }) {
   const { setMobileNavOpen, setCommandPaletteOpen } = useUiStore();
-  const { theme, setTheme } = useThemeStore();
-  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-ink-100 dark:border-ink-800 bg-white/80 dark:bg-ink-950/80 backdrop-blur px-4 sm:px-6 py-4">
@@ -43,14 +41,7 @@ export function Topbar({ title, right }: { title: string; right?: ReactNode }) {
 
         {right}
         <NotificationBell />
-
-        <button
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="rounded-xl p-2.5 bg-ink-50 dark:bg-ink-900 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
-          aria-label="Toggle dark mode"
-        >
-          {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
-        </button>
+        <ThemeToggle />
       </div>
     </header>
   );

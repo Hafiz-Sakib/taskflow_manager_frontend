@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { LayoutGrid, CalendarDays, KanbanSquare, BarChart3, Sun, Pin, LogOut, Settings } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Dropdown, DropdownItem } from '@/components/ui/Dropdown';
+import { LogoWordmark } from '@/components/common/Logo';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useBoards } from '@/hooks/useBoards';
@@ -24,6 +25,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <aside className="flex h-full w-64 flex-col border-r border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-950 px-4 py-6">
+      <LogoWordmark className="px-2 mb-5" />
       <div className="px-2 mb-6">
         <WorkspaceSwitcher />
       </div>

@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { ProtectedRoute } from './ProtectedRoute';
+import { PublicRoute } from './PublicRoute';
 import { Spinner } from '@/components/ui/Spinner';
 
 const LandingPage = lazy(() => import('@/pages/LandingPage'));
@@ -20,9 +21,30 @@ export function AppRoutes() {
   return (
     <Suspense fallback={<Spinner full />}>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <LandingPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          }
+        />
 
         <Route
           path="/app"

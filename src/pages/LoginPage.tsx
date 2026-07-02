@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LoginForm } from '@/features/auth/LoginForm';
+import { LogoWordmark } from '@/components/common/Logo';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 export default function LoginPage() {
   return (
@@ -21,14 +23,15 @@ export default function LoginPage() {
         <p className="text-sm text-white/50">© {new Date().getFullYear()} TaskFlow</p>
       </div>
 
-      <div className="flex items-center justify-center p-6 sm:p-12">
+      <div className="relative flex items-center justify-center p-6 sm:p-12">
+        <ThemeToggle className="absolute top-6 right-6" />
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
           className="w-full max-w-sm"
         >
-          <div className="lg:hidden h-10 w-10 rounded-xl bg-brand-gradient mb-8" />
+          <LogoWordmark className="lg:hidden mb-8" />
           <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
           <p className="text-ink-400 mb-8">Sign in to keep your boards moving.</p>
 

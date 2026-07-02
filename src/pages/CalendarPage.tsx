@@ -1,12 +1,18 @@
-import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useMemo, useState, type FormEvent } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Topbar } from '@/components/layout/Topbar';
 import { PageTransition } from '@/components/common/PageTransition';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { PriorityBadge } from '@/components/common/PriorityBadge';
 import { useTasksList } from '@/hooks/useTasks';
 import { useBoards } from '@/hooks/useBoards';
+import { tasksApi } from '@/api/tasks';
+import { extractErrorMessage } from '@/api/axios';
 import { formatDate } from '@/utils/date';
 import { cn } from '@/utils/cn';
 
@@ -44,8 +50,21 @@ function buildMonthGrid(cursor: Date) {
 export default function CalendarPage() {
   const [cursor, setCursor] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(new Date());
+  const [addOpen, setAddOpen] = useState(false);
   const { data, isLoading } = useTasksList({ limit: 200 });
   const { data: boards } = useBoards();
+  const queryClient = useQueryClient();
+
+  const createTask = useMutation({
+    mutationFn: tasksApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['boards'] });
+      toast.success('Task created');
+      setAddOpen(false);
+    },
+    onError: (err) => toast.error(extractErrorMessage(err)),
+  });
 
   const tasksWithDueDate = (data?.items || []).filter((t) => t.dueDate);
   const cells = useMemo(() => buildMonthGrid(cursor), [cursor]);
@@ -133,7 +152,23 @@ export default function CalendarPage() {
               </div>
 
               <div>
-                <h2 className="font-bold mb-3">{formatDate(selectedDay.toISOString())}</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="font-bold">{formatDate(selectedDay.toISOString())}</h2>
+                  <Button variant="ghost" size="sm" onClick={() => setAddOpen((o) => !o)}>
+                    <Plus className="h-3.5 w-3.5" /> Add task
+                  </Button>
+                </div>
+
+                {addOpen && (
+                  <DayTaskForm
+                    boards={boards || []}
+                    selectedDay={selectedDay}
+                    onSubmit={(payload) => createTask.mutate(payload)}
+                    isPending={createTask.isPending}
+                    onCancel={() => setAddOpen(false)}
+                  />
+                )}
+
                 <div className="rounded-2xl bg-white dark:bg-ink-900 shadow-soft divide-y divide-ink-100 dark:divide-ink-800">
                   {selectedTasks.length === 0 && <p className="text-sm text-ink-400 p-4">No tasks due this day.</p>}
                   {selectedTasks.map((t) => (
@@ -154,5 +189,83 @@ export default function CalendarPage() {
         </div>
       </PageTransition>
     </div>
+  );
+}
+
+function DayTaskForm({
+  boards,
+  selectedDay,
+  onSubmit,
+  isPending,
+  onCancel,
+}: {
+  boards: { _id: string; title: string; columns: string[] }[];
+  selectedDay: Date;
+  onSubmit: (payload: {
+    title: string;
+    board: string;
+    column: string;
+    priority: 'low' | 'medium' | 'high';
+    dueDate: string;
+  }) => void;
+  isPending: boolean;
+  onCancel: () => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [boardId, setBoardId] = useState(boards[0]?._id || '');
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const board = boards.find((b) => b._id === boardId) || boards[0];
+
+  if (boards.length === 0) {
+    return (
+      <div className="rounded-2xl bg-white dark:bg-ink-900 shadow-soft p-4 mb-4">
+        <p className="text-sm text-ink-400">Create a board first before adding tasks from the calendar.</p>
+      </div>
+    );
+  }
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !board) return;
+    onSubmit({
+      title: title.trim(),
+      board: board._id,
+      column: board.columns[0],
+      priority,
+      dueDate: selectedDay.toISOString(),
+    });
+    setTitle('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-2xl bg-white dark:bg-ink-900 shadow-soft p-4 mb-4 space-y-3">
+      <Input autoFocus placeholder="Task title" value={title} onChange={(e) => setTitle(e.target.value)} />
+      <div className="grid grid-cols-2 gap-2">
+        <Select value={boardId || board?._id} onChange={(e) => setBoardId(e.target.value)}>
+          {boards.map((b) => (
+            <option key={b._id} value={b._id}>
+              {b.title}
+            </option>
+          ))}
+        </Select>
+        <Select value={priority} onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}>
+          <option value="low">Low priority</option>
+          <option value="medium">Medium priority</option>
+          <option value="high">High priority</option>
+        </Select>
+      </div>
+      <p className="text-xs text-ink-400">
+        Due <span className="font-semibold">{formatDate(selectedDay.toISOString())}</span> — goes into "
+        {board?.columns[0]}"
+      </p>
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" size="sm" isLoading={isPending}>
+          Create task
+        </Button>
+      </div>
+    </form>
   );
 }

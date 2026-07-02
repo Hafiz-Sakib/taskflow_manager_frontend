@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Kanban, CalendarDays, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/contexts/AuthProvider';
+import { LogoWordmark } from '@/components/common/Logo';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 const FEATURES = [
   {
@@ -23,30 +24,18 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
-  const { user } = useAuth();
-
   return (
     <div className="min-h-screen bg-ink-50 dark:bg-ink-950">
       <header className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-brand-gradient" />
-          <span className="font-bold text-lg">TaskFlow</span>
-        </div>
+        <LogoWordmark />
         <div className="flex items-center gap-3">
-          {user ? (
-            <Link to="/app">
-              <Button size="sm">Go to app</Button>
-            </Link>
-          ) : (
-            <>
-              <Link to="/login" className="text-sm font-semibold text-ink-600 dark:text-ink-300">
-                Sign in
-              </Link>
-              <Link to="/register">
-                <Button size="sm">Get started</Button>
-              </Link>
-            </>
-          )}
+          <ThemeToggle />
+          <Link to="/login" className="text-sm font-semibold text-ink-600 dark:text-ink-300">
+            Sign in
+          </Link>
+          <Link to="/register">
+            <Button size="sm">Get started</Button>
+          </Link>
         </div>
       </header>
 
