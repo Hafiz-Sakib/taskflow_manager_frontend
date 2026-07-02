@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       fontFamily: {
@@ -39,17 +39,36 @@ export default {
           medium: '#f5a15c',
           high: '#ef4d6b',
         },
+        success: '#28c281',
+        warning: '#f5a15c',
+        danger: '#ef4d6b',
+        info: '#3b6cf6',
+      },
+      spacing: {
+        4.5: '1.125rem',
+        18: '4.5rem',
       },
       borderRadius: {
         xl2: '1.25rem',
       },
       boxShadow: {
-        card: '0 12px 30px -12px rgba(20, 20, 43, 0.12)',
-        soft: '0 6px 16px -6px rgba(20, 20, 43, 0.08)',
-        'card-dark': '0 12px 30px -12px rgba(0, 0, 0, 0.5)',
+        xs: '0 1px 2px 0 rgba(20,20,43,0.05)',
+        sm: '0 2px 6px -1px rgba(20,20,43,0.06)',
+        card: '0 12px 30px -12px rgba(20,20,43,0.14)',
+        soft: '0 6px 16px -6px rgba(20,20,43,0.08)',
+        popover: '0 20px 45px -15px rgba(20,20,43,0.25)',
+        'card-dark': '0 12px 30px -12px rgba(0,0,0,0.5)',
       },
       backgroundImage: {
         'brand-gradient': 'linear-gradient(135deg, #241549 0%, #5842e0 38%, #b13bde 68%, #ef5da8 88%, #f5a15c 100%)',
+      },
+      keyframes: {
+        'fade-in': { from: { opacity: 0 }, to: { opacity: 1 } },
+        shimmer: { '100%': { transform: 'translateX(100%)' } },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.15s ease-out',
+        shimmer: 'shimmer 1.6s infinite',
       },
     },
   },

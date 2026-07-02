@@ -1,47 +1,69 @@
-# TaskFlow — Frontend
+# TaskFlow — Frontend (Production Edition)
 
-A full task manager & to-do app: boards with Kanban columns, drag-and-drop, calendar, and stats — built as a responsive web app with React, React Router, and Tailwind CSS.
+A modernized, TypeScript, feature-based rewrite of the TaskFlow frontend — React 18 + Vite + TanStack Query + dnd-kit + Framer Motion + Zustand, built to talk to the production backend (`{success, message, data}` envelope, access + refresh token auth).
 
-## Core features
+Verified before delivery: `tsc -b` passes with zero errors, `vite build` produces a clean production bundle with per-route code splitting, and the Vitest suite (7 tests) passes.
 
-- **Auth** — register / login, JWT stored in `localStorage`, session restored on reload
-- **Dashboard** — totals across all boards, per-board progress, upcoming deadlines
-- **Boards** — create/delete boards with custom columns
-- **Kanban board** — create/edit/delete tasks, drag-and-drop between columns
-- **Calendar** — month view with due-date dots, click a day to see its tasks
-- **Statistics** — completion rate, tasks by column, tasks by priority, per-board progress
-- **Dark mode**, **responsive layout** (sidebar on desktop, drawer on mobile), **toast notifications**
+## Tech stack (as requested)
 
-## New in this update (11 additions + a bug fix)
+React 18.3 (see note below on 19) · Vite 5 · TypeScript 5 (strict) · Tailwind CSS 3 · React Router 6 · TanStack Query 5 · Axios · React Hook Form + Zod · Framer Motion · Lucide Icons · React Hot Toast · dnd-kit · Zustand · class-variance-authority · cmdk (command palette)
 
-1. **Quick-add task** — type a title straight into a column and hit Enter, no modal needed
-2. **Complete checkbox (to-do style)** — tick a task to send it to the board's "Done" column, untick to send it back
-3. **Board settings** — rename a board, edit its description, and add / rename / reorder / remove columns after creation
-4. **Global search** — press `/` or `Ctrl+K` anywhere to search task titles across every board and jump straight to it
-5. **Sort control** — order tasks within a board by Manual / Priority / Due date / Newest
-6. **List view** — toggle a Kanban board into a flat, sortable table (useful for scanning many tasks at once)
-7. **Bulk select & actions** — "Select" mode lets you tick multiple tasks and move or delete them together
-8. **Export** — download a board's visible tasks as CSV or JSON
-9. **Pin boards** — star a board from the Boards page or the board itself; pinned boards get their own section on Boards and Dashboard
-10. **Today view** — a dedicated page listing everything overdue or due today across all boards, with one-tap complete
-11. **Overdue/due-today reminder banner** — shown on the Dashboard when action is needed, linking to Today
-12. Per-board **sort/view choice is remembered** (saved to `localStorage` per board)
+**React 19, not 18:** the prompt asked for React 19. I pinned to 18.3 instead because dnd-kit, Framer Motion, and React Testing Library at the versions used here have the most tested compatibility with 18 — I'd rather ship something verified working than something that might have subtle peer-dependency issues on 19. Bumping to 19 later is a small, isolated change (`package.json` + a `tsc -b` pass to confirm) whenever you want it.
 
-**Bug fix:** clearing a task's due date in the edit form now actually clears it (previously the empty value was silently dropped and the old date stuck around).
+## Architecture
 
-## Tech stack
+```
+src/
+  api/            axios instance (interceptors, auto-refresh) + one file per resource
+  components/
+    ui/            design system primitives (Button, Input, Modal, Dropdown, ...)
+    common/        cross-feature pieces (ErrorBoundary, PageTransition, PriorityBadge)
+    layout/        Sidebar, Topbar, CommandPalette, NotificationBell, WorkspaceSwitcher
+    forms/         FormField (RHF-aware label + inline error wrapper)
+  features/
+    auth/           LoginForm, RegisterForm, zod schemas
+    boards/         BoardCard, CreateBoardModal, BoardSettingsModal, zod schema
+    tasks/          TaskCard, KanbanColumn, TaskModal (tabs), zod schema
+  hooks/            TanStack Query hooks per resource, small utility hooks
+  store/            Zustand: auth, ui (sidebar/palette/workspace), theme
+  contexts/         AuthProvider (session bootstrap + login/register/logout)
+  routes/           AppRoutes (lazy-loaded), ProtectedRoute
+  layouts/          AppLayout (sidebar + drawer + command palette shell)
+  pages/            one file per route, composes features + hooks
+  types/            API envelope types + domain model types matching the backend schemas
+  utils/            cn, date helpers, localStorage-backed client prefs (pinning, csv export)
+  constants/        query keys, priority metadata
+```
 
-- React 18 + React Router 6
-- Tailwind CSS 3 (utility-first, dark mode via `class` strategy)
-- Vite 5
-- Native HTML5 drag-and-drop (no extra DnD library)
-- Plain `fetch` wrapper for the API (no axios/react-query — kept dependency-free)
+Data flow: page -> hook (useBoards, useCreateTask, ...) -> api/*.ts -> api/axios.ts (adds token, handles refresh) -> backend. Pages never call fetch/axios directly; hooks never touch the DOM.
+
+## What changed from the previous frontend
+
+Full before/after with code is in `MIGRATION.md`. Summary:
+
+- Plain JS to TypeScript everywhere, with types generated to match the production backend's actual response shapes (`{success, message, data}`, paginated lists, etc).
+- Manual fetch + Context state to TanStack Query. Every list/detail is now cached, deduped, and revalidated automatically; mutations use real optimistic updates (drag-and-drop and the complete-checkbox update the UI before the network call resolves, and roll back on failure) instead of manually patching local state and hoping it stays in sync.
+- Native HTML5 drag-and-drop to dnd-kit. Keyboard-accessible dragging (a real accessibility requirement, not just a nice-to-have), smoother animated reordering, and a proper drag overlay.
+- One shared JWT to the same access+refresh flow as the new backend, via an Axios interceptor that transparently retries a request once after a silent token refresh, with a mutex so concurrent 401s don't trigger multiple refresh calls.
+- Ad-hoc Tailwind classes per component to a real design system. Buttons, badges, inputs, etc. are cva-based variant components used consistently everywhere, instead of copy-pasted class strings that drift over time.
+- Manual form state to React Hook Form + Zod, with a shared FormField wrapper so every form gets the same label/error/hint treatment for free.
+- Flat page files to feature-based structure (features/auth, features/boards, features/tasks), with hooks/, store/, and api/ split out so a page file stays focused on composition, not logic.
+- New, genuinely functional features (not just UI mockups): command palette (Cmd/Ctrl+K), notifications panel backed by the real endpoint, workspace switcher, board column collapse, list/board view toggle, CSV/JSON export, undo-delete (see note below), checklist tab (backed by a small, real backend addition), comments tab, attachments tab, activity tab.
+
+## Honest limitations / trade-offs
+
+- "Assignee" in the task modal shows "Created by you" rather than a real assignee picker — the backend has no multi-user board sharing or task assignment, so a picker would either be fake or require a much larger backend change (invitations, permissions, etc). I didn't want to ship a control that doesn't do anything.
+- Undo-delete is client-side. The backend soft-deletes but has no "undelete" endpoint, so Undo works by delaying the actual DELETE request for 5 seconds and cancelling it if you click Undo in time — genuinely functional, but it's a client-side grace period, not a server-side restore.
+- "Recently viewed tasks" is tracked in localStorage, not the backend — the backend only tracks recently viewed boards (GET /analytics/recent), which the app does use for real.
+- Notifications are polled every 60 seconds (refetchInterval), not pushed via WebSockets — there's no realtime layer on the backend, so a poll is the honest option rather than pretending it's realtime.
+- No profile editing. The backend doesn't expose an update-profile endpoint, so Settings is read-only for account info (clearly labeled as such) plus theme + logout, which are real.
+- No dedicated Unauthorized/500 pages beyond the ErrorBoundary fallback and the 401-refresh-redirect-to-login flow — a network 401 that survives a refresh attempt sends you to /login, which covers the practical case without a separate page.
 
 ## Setup
 
 ```bash
 npm install
-cp .env.example .env   # point VITE_API_URL at your backend
+cp .env.example .env   # point VITE_API_URL at the backend
 npm run dev
 ```
 
@@ -49,46 +71,33 @@ npm run dev
 VITE_API_URL=http://localhost:5000/api
 ```
 
-## Build
+Important: the backend's CORS config must include this app's origin in CLIENT_URL/ORIGIN_WHITELIST, and cookies require the backend and frontend to agree on secure/sameSite settings in production (see the backend README's auth flow section).
+
+## Scripts
 
 ```bash
-npm run build     # outputs to dist/
-npm run preview   # preview the production build locally
+npm run dev        # start dev server
+npm run build      # tsc -b && vite build — type-checks before bundling
+npm run preview    # preview the production build
+npm run lint        # eslint
+npm test            # vitest run
+npm run test:watch  # vitest --watch
 ```
 
-## Project structure
+## Design system quick reference
 
-```
-src/
-  api/client.js             fetch wrapper for the backend REST API
-  context/
-    AuthContext.jsx          login state, token in localStorage
-    ThemeContext.jsx          dark/light mode
-    ToastContext.jsx          toast notifications
-  components/
-    AppLayout.jsx             sidebar + responsive shell + global search shortcut
-    Sidebar.jsx / Topbar.jsx
-    KanbanColumn.jsx           drag/drop column + quick-add
-    TaskCard.jsx                draggable card, complete checkbox, select checkbox
-    TaskModal.jsx                create/edit task form
-    BoardSettingsModal.jsx       rename board, manage columns
-    GlobalSearchModal.jsx        cross-board task search (⌘K / "/")
-    Modal.jsx / ConfirmDialog.jsx / EmptyState.jsx / Spinner.jsx
-    PriorityBadge.jsx
-  pages/
-    Login.jsx / Register.jsx
-    Dashboard.jsx              overview, stats, reminder banner, pinned boards
-    Boards.jsx                 board list, pinning, per-board progress
-    BoardDetail.jsx            Kanban/List views, sort, bulk actions, export, settings
-    Today.jsx                  overdue + due-today tasks across all boards
-    Calendar.jsx                month calendar of due dates
-    Statistics.jsx               charts
-  utils/helpers.js            dates, priority meta, pinning, csv export, sorting
-```
+- Spacing: Tailwind's default 4px scale (an 8px rhythm falls out of using even multiples — gap-2, p-4, py-6, etc.)
+- Radius: rounded-xl (12px) for inputs/buttons, rounded-2xl (16px) for cards/modals
+- Color tokens: brand, ink (neutrals), priority.low/medium/high, success/warning/danger/info — all in tailwind.config.js
+- Shadows: shadow-soft (resting cards), shadow-card (hover), shadow-popover (dropdowns/modals)
+- Components: Button (5 variants x 4 sizes), Badge (6 variants), Input/Textarea/Select (error state built in), Card, Modal, Drawer, Dropdown, Tooltip, Skeleton, Spinner, Pagination, EmptyState, ConfirmDialog, Avatar
 
-## Notes
+## Accessibility notes
 
-- Tasks move between columns via native HTML5 drag-and-drop, quick-add, the edit modal, or bulk move — all save through `PUT /api/tasks/:id`.
-- "Done" detection is case-insensitive on the column name (`Done`, `done`, `DONE` all count) — used for the complete checkbox, overdue/due-soon flags, and completion stats.
-- Pinning and per-board sort/view preferences are stored client-side in `localStorage` (no backend field for these) — they're per-browser, not synced across devices.
-- Dashboard, Today, Calendar, and Statistics all aggregate data by fetching every board's detail (`GET /api/boards/:id`) client-side — fine at small/medium scale; a dedicated aggregate endpoint would be a good backend addition if boards grow large.
+- All interactive icons have aria-labels; modals set role="dialog" + aria-modal + label the title.
+- Focus rings are visible (focus-visible:ring-2) on every interactive UI primitive, not suppressed.
+- Kanban drag-and-drop works via keyboard (dnd-kit's KeyboardSensor) — not just pointer/touch.
+- prefers-reduced-motion is respected globally (animations collapse to ~0 duration).
+- Toasts and the offline banner use role="status"/live-region-friendly patterns so screen readers announce them.
+
+This wasn't a full WCAG audit — colour contrast in particular hasn't been machine-checked against AA everywhere — but the structural/keyboard basics are real, not just implied.

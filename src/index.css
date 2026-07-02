@@ -10,7 +10,6 @@ body {
   @apply font-sans text-ink-900 dark:text-ink-50 antialiased;
 }
 
-/* Custom scrollbar, kept subtle */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -22,35 +21,19 @@ body {
   background: transparent;
 }
 
-/* Drag ghost styling for native HTML5 DnD */
-.task-dragging {
-  opacity: 0.4;
+[cmdk-overlay] {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 55;
 }
 
-.column-dropzone {
-  @apply ring-2 ring-brand-400 ring-offset-2 ring-offset-transparent;
-}
-
-@layer components {
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  .btn-primary {
-    @apply btn bg-brand-500 text-white hover:bg-brand-600 shadow-soft;
-  }
-  .btn-ghost {
-    @apply btn bg-ink-100 text-ink-900 hover:bg-ink-200 dark:bg-ink-900 dark:text-ink-50 dark:hover:bg-ink-700;
-  }
-  .btn-danger {
-    @apply btn bg-priority-high/10 text-priority-high hover:bg-priority-high/20;
-  }
-  .input {
-    @apply w-full rounded-xl border border-ink-100 dark:border-ink-700 bg-white dark:bg-ink-900 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-brand-400 placeholder:text-ink-400;
-  }
-  .card {
-    @apply rounded-2xl bg-white dark:bg-ink-900 shadow-soft dark:shadow-card-dark;
-  }
-  .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
